@@ -1,5 +1,5 @@
 
-#you’ll need yo run this code on google colab and upload the pictures provided in the writeup to the files section of the colab notebook
+#you’ll need to run this code on google colab and upload the pictures provided in the writeup to the files section of the colab notebook
 #upload photos under '/content' folder to avoid errors
 
 import numpy as np
