@@ -6,92 +6,91 @@
 import numpy as np
 import matplotlib.pyplot as plt
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
-from IPython.display import Image, display
+
+EASY = 1
+MEDIUM = 2
+HARD = 3
 
 difficulty = 1
 
-def plot_game(user_score, computer_score, user_shoot, computer_shoot, user_ship_path, comp_ship_path):
+def plot_game(user_score, computer_score, user_shoot, computer_shoot, user_ship1, comp_ship1):
+ 
     fig, axs = plt.subplots(1, 2, figsize=(10, 4))
 
     axs[0].bar(['User', 'Computer'], [user_shoot, computer_shoot], color=['white', 'white'])
     axs[0].set_ylim(0, 5)
     axs[0].set_title('Current Round Shots')
-
+    
     axs[1].bar(['User', 'Computer'], [user_score, computer_score], color=['red', 'blue'])
     axs[1].set_ylim(0, 3)
     axs[1].set_title('Current Scores')
+    try:
+  
+        user_ship = plt.imread(user_ship1)
+        comp_ship = plt.imread(comp_ship1)
+       
+        user_imagebox = OffsetImage(user_ship, zoom=0.15)
+        comp_imagebox = OffsetImage(comp_ship, zoom=0.15)
 
-    user_ship = plt.imread(user_ship_path)
-    comp_ship = plt.imread(comp_ship_path)
+        user_ab = AnnotationBbox(user_imagebox, (0, user_shoot), frameon=False)
+        comp_ab = AnnotationBbox(comp_imagebox, (1, computer_shoot), frameon=False)
+        axs[0].add_artist(user_ab)
+        axs[0].add_artist(comp_ab)
 
-    user_imagebox = OffsetImage(user_ship, zoom=0.15)
-    comp_imagebox = OffsetImage(comp_ship, zoom=0.15)
-
-    user_ab = AnnotationBbox(user_imagebox, (0, user_shoot), frameon=False)
-    comp_ab = AnnotationBbox(comp_imagebox, (1, computer_shoot), frameon=False)
-
-    axs[0].add_artist(user_ab)
-    axs[0].add_artist(comp_ab)
-
-    plt.show()
-
+        plt.show()
+    except FileNotFoundError as e:
+        print("Image file not found. Displaying plot without images.")
+        plt.show()
 def computer_shoot_logic(user_shoot):
     global difficulty
-    if difficulty == 1:  # Easy
+    if difficulty == EASY:
         weights = [0.7 if i == user_shoot else 0.075 for i in range(1, 6)]
-    elif difficulty == 2:  # Medium
+    elif difficulty == MEDIUM:
         weights = [0.4 if i == user_shoot else 0.15 for i in range(1, 6)]
-    else:  # Hard
+    else:  
         weights = [0.1 if i == user_shoot else 0.225 for i in range(1, 6)]
+    
     return np.random.choice([1, 2, 3, 4, 5], p=weights)
-
 
 def shooting_game():
     global difficulty
     user_score = 0
     computer_score = 0
-
     print("Welcome to Isa's Shooting Game!")
-    print("First one to reach 3 points wins.")
-    print("You may make a point by shooting in the same direction as the computer.")
-    
-    difficulty = int(input("Select difficulty level (1-Easy, 2-Medium, 3-Hard): "))
-    while difficulty not in [1, 2, 3]:
-        difficulty = int(input("Invalid level! Please choose 1, 2, or 3: "))
+    print("The first player to reach 3 points wins.")
+    print("Score a point by shooting at the same position as the computer.")
 
-    while user_score < 3 and computer_score < 3:
+    while True:
         try:
-            user_input = int(input("Shoot at a position (1-5): "))
-            if user_input < 1 or user_input > 5:
-                print("Invalid position! Shoot between 1 and 5.")
-                continue
-        except ValueError:
-            print("Please enter a valid number.")
-            continue
-
+            difficulty = int(input("Select difficulty level (1-Easy, 2-Medium, 3-Hard): "))
+            if difficulty not in [EASY, MEDIUM, HARD]:
+                raise ValueError("Invalid level! Please choose 1, 2, or 3")
+            break
+        except ValueError as e:
+            print(e)
+   
+    while user_score < 3 and computer_score < 3:
+        while True:
+            try:
+                user_input = int(input("Shoot at a position (1-5): "))
+                if user_input < 1 or user_input > 5:
+                    raise ValueError("Invalid position! Shoot between 1 and 5.")
+                break
+            except ValueError as e:
+                print(e)
         user_shoot = user_input
         computer_shoot = computer_shoot_logic(user_shoot)
-
         print(f"Computer shot at position {computer_shoot}.")
-
         if user_shoot == computer_shoot:
-            print("User wins this round!")
+            print("You win this round!")
             user_score += 1
         else:
             print("Computer wins this round!")
             computer_score += 1
-
         print(f"Score: You - {user_score}, Computer - {computer_score}")
-
         plot_game(user_score, computer_score, user_shoot, computer_shoot, 'user_ship1.png', 'comp_ship1.png')
-
     if user_score == 3:
         print("Congratulations! You won the game.")
-        winner_image = 'user_ship.png'
     else:
         print("Computer wins the game. Better luck next time!")
-        winner_image = 'comp_ship.png'
-
-    display(Image(filename=winner_image))
-
 shooting_game()
